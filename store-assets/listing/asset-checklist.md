@@ -6,6 +6,7 @@
 - Small promo tile: `store-assets/promotional/small-promo-440x280.png`
 - Marquee promo tile: `store-assets/promotional/marquee-1400x560.png`
 - Extension icon: `bili-vrc-parser-extension/icons/icon-128.png`
+- Chrome Web Store URL: `https://chromewebstore.google.com/detail/naeaecjabhcjeagenojhaiflljegmaca?utm_source=item-share-cb`
 
 Chrome Web Store fields are drafted in:
 
