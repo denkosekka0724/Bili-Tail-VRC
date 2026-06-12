@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bili小尾巴 VRC解析 使用指南</title>
+    <link rel="stylesheet" href="welcome.css">
+  </head>
+  <body>
+    <main class="onboarding" aria-labelledby="guideTitle">
+      <header class="hero">
+        <div class="brand">
+          <img src="icons/icon-48.png" alt="">
+          <div>
+            <p>欢迎使用</p>
+            <h1 id="guideTitle">Bili小尾巴 VRC解析</h1>
+          </div>
+        </div>
+        <p class="intro">跟着小尾巴试一遍：单击、双击、自动直链和配置入口都会在右侧演示。</p>
+      </header>
+
+      <section class="workspace" aria-label="小尾巴使用方式">
+        <aside class="step-list" aria-label="教程步骤">
+          <button class="step-tab" type="button" data-step="0">
+            <span>01</span>
+            <strong>普通视频单击</strong>
+            <em>复制播放地址</em>
+          </button>
+          <button class="step-tab" type="button" data-step="1">
+            <span>02</span>
+            <strong>普通视频双击</strong>
+            <em>复制临时直链</em>
+          </button>
+          <button class="step-tab" type="button" data-step="2">
+            <span>03</span>
+            <strong>自动直链</strong>
+            <em>分P / 列表 / 直播</em>
+          </button>
+          <button class="step-tab" type="button" data-step="3">
+            <span>04</span>
+            <strong>配置入口</strong>
+            <em>切换清晰度偏好</em>
+          </button>
+        </aside>
+
+        <section class="lesson-card">
+          <div class="lesson-copy">
+            <p class="eyebrow" id="stepCounter">1 / 4</p>
+            <h2 id="stepTitle">解析普通视频</h2>
+            <p id="stepText">打开普通视频页，单击小尾巴图标，会复制 91biliplayer 播放地址。</p>
+          </div>
+
+          <div class="browser-shell" aria-label="模拟 Chrome 浏览器">
+            <div class="browser-bar">
+              <div class="traffic" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="address" id="mockAddress">bilibili.com/video/BV1xx...</div>
+              <div class="toolbar" aria-label="模拟扩展工具栏">
+                <span class="tool-dot"></span>
+                <button id="mockExtension" class="mock-extension" type="button" aria-label="点击小尾巴复制链接">
+                  <img src="icons/icon-32.png" alt="">
+                </button>
+                <span class="tool-menu"></span>
+              </div>
+            </div>
+
+            <div class="bili-page">
+              <nav class="bili-nav" aria-hidden="true">
+                <span>首页</span><span>番剧</span><span>直播</span><span>游戏中心</span>
+              </nav>
+              <div class="mock-toast" id="mockToast" role="status">点击右上角小尾巴试试看</div>
+              <div class="video-area">
+                <div class="play-icon"></div>
+              </div>
+              <aside class="recommend" aria-hidden="true">
+                <div class="rec-title"></div>
+                <div class="rec-card"></div>
+                <div class="rec-line short"></div>
+                <div class="rec-line"></div>
+                <div class="rec-card"></div>
+                <div class="rec-line"></div>
+              </aside>
+              <div class="video-meta">
+                <h3 id="mockVideoTitle">我用 Open Design 跑通了按产品规范生成原型</h3>
+                <p id="mockVideoMeta">普通视频 · P1/1 · 点击小尾巴复制</p>
+              </div>
+            </div>
+
+            <div class="click-hint" id="clickHint">点这里</div>
+            <div class="extension-menu" id="extensionMenu" aria-label="模拟扩展图标菜单">
+              <p class="menu-title">Bili小尾巴 VRC解析</p>
+              <button class="menu-primary" type="button">切换小尾巴配置</button>
+              <span>取消固定</span>
+              <span>管理扩展程序</span>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <footer class="controls">
+        <button class="nav prev" type="button" aria-label="上一步">‹</button>
+        <button class="nav next" type="button" aria-label="下一步">›</button>
+        <button id="doneButton" type="button">完成</button>
+      </footer>
+    </main>
+    <script src="welcome.js"></script>
+  </body>
+</html>
