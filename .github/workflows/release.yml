@@ -27,15 +27,34 @@ jobs:
           )"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Package extension
+      - name: Package Chrome and Edge extensions
         run: |
-          zip -r -X "bili-tail-tool-${{ steps.version.outputs.version }}.zip" . \
-            -x ".git/*" \
-            -x ".github/*" \
-            -x ".gitignore" \
-            -x ".DS_Store" \
-            -x "store-assets/*" \
-            -x "*.zip"
+          for target in chrome edge; do
+            zip -r -X "bili-tail-vrc-${target}-${{ steps.version.outputs.version }}.zip" . \
+              -x ".git/*" \
+              -x ".github/*" \
+              -x ".gitignore" \
+              -x ".DS_Store" \
+              -x "store-assets/*" \
+              -x "*.zip"
+          done
+
+      - name: Check package contents
+        run: |
+          for target in chrome edge; do
+            unzip -l "bili-tail-vrc-${target}-${{ steps.version.outputs.version }}.zip"
+          done
+          if unzip -l "bili-tail-vrc-chrome-${{ steps.version.outputs.version }}.zip" | grep -E "store-assets/|\\.git/"; then
+            echo "Unexpected non-extension files in package"
+            exit 1
+          fi
+          if unzip -l "bili-tail-vrc-edge-${{ steps.version.outputs.version }}.zip" | grep -E "store-assets/|\\.git/"; then
+            echo "Unexpected non-extension files in package"
+            exit 1
+          fi
+          cmp \
+            <(unzip -Z1 "bili-tail-vrc-chrome-${{ steps.version.outputs.version }}.zip" | sort) \
+            <(unzip -Z1 "bili-tail-vrc-edge-${{ steps.version.outputs.version }}.zip" | sort)
 
       - name: Write release notes
         run: |
@@ -52,6 +71,7 @@ jobs:
           - 分P、列表页视频和直播间自动复制直链
           - 扩展菜单里切换直链清晰度偏好
           - 首次安装后打开本地交互式教程页
+          - Release 同时提供 Chrome 和 Edge 两个命名包，两个包内容一致
 
           说明：这是非官方工具，不隶属于 Bilibili、VRChat 或 91biliplayer。B 站临时直链可能会过期，播放结果取决于播放器、网络环境、第三方服务和视频权限。
           EOF
@@ -61,6 +81,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            "bili-tail-tool-${{ steps.version.outputs.version }}.zip" \
+            "bili-tail-vrc-chrome-${{ steps.version.outputs.version }}.zip" \
+            "bili-tail-vrc-edge-${{ steps.version.outputs.version }}.zip" \
             --title "Bili小尾巴 VRC解析 ${{ steps.version.outputs.version }}" \
             --notes-file release-notes.md

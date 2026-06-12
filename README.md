@@ -34,14 +34,19 @@ Edge:
 
 ## 打包
 
-仓库根目录就是扩展根目录，直接打包即可：
+仓库根目录就是扩展根目录，直接打包即可。Chrome 和 Edge 包内容保持一致，只用文件名区分上传渠道：
 
 ```sh
-zip -r -X bili-tail-tool.zip . \
-  -x '.git/*' \
-  -x '.DS_Store' \
-  -x 'store-assets/*' \
-  -x '*.zip'
+for target in chrome edge; do
+  zip -r -X "bili-tail-vrc-${target}-0.5.4.zip" . \
+    -x '.git/*' \
+    -x '.github/*' \
+    -x '.gitignore' \
+    -x '.DS_Store' \
+    -x 'store-assets/*' \
+    -x 'release/*' \
+    -x '*.zip'
+done
 ```
 
 ## 商店素材
