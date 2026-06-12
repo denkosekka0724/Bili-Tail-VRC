@@ -10,6 +10,9 @@ Bili小尾巴 VRC解析
 
 ## Detailed Description
 
+Chrome Web Store:
+https://chromewebstore.google.com/detail/naeaecjabhcjeagenojhaiflljegmaca?utm_source=item-share-cb
+
 Bili小尾巴 VRC解析是一个小巧的 Chrome 扩展，帮你在打开 B 站视频页、列表页里的视频或直播间时，一键复制可以带去 VRChat/VRC 世界里尝试使用的播放链接。
 
 适合这些场景：
