@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bili小尾巴 VRC解析 使用指南</title>
+    <title>Bili小尾巴 VRC弹幕版 使用指南</title>
     <link rel="stylesheet" href="welcome.css">
   </head>
   <body>
@@ -13,10 +13,10 @@
           <img src="icons/icon-48.png" alt="">
           <div>
             <p>欢迎使用</p>
-            <h1 id="guideTitle">Bili小尾巴 VRC解析</h1>
+            <h1 id="guideTitle">Bili小尾巴 VRC弹幕版</h1>
           </div>
         </div>
-        <p class="intro">跟着小尾巴试一遍：单击、双击、自动直链和配置入口都会在右侧演示。</p>
+        <p class="intro">这版多了带弹幕后端模式。先看普通复制，再看弹幕 HLS 和配置入口。</p>
       </header>
 
       <section class="workspace" aria-label="小尾巴使用方式">
@@ -38,8 +38,13 @@
           </button>
           <button class="step-tab" type="button" data-step="3">
             <span>04</span>
+            <strong>带弹幕模式</strong>
+            <em>生成 HLS 地址</em>
+          </button>
+          <button class="step-tab" type="button" data-step="4">
+            <span>05</span>
             <strong>配置入口</strong>
-            <em>切换清晰度偏好</em>
+            <em>切换模式和后端</em>
           </button>
         </aside>
 
@@ -47,7 +52,7 @@
           <div class="lesson-copy">
             <p class="eyebrow" id="stepCounter">1 / 4</p>
             <h2 id="stepTitle">解析普通视频</h2>
-            <p id="stepText">打开普通视频页，单击小尾巴图标，会复制 91biliplayer 播放地址。</p>
+            <p id="stepText">普通模式打开视频页，单击小尾巴图标，会复制 91biliplayer 播放地址。</p>
           </div>
 
           <div class="browser-shell" aria-label="模拟 Chrome 浏览器">
@@ -89,7 +94,7 @@
 
             <div class="click-hint" id="clickHint">点这里</div>
             <div class="extension-menu" id="extensionMenu" aria-label="模拟扩展图标菜单">
-              <p class="menu-title">Bili小尾巴 VRC解析</p>
+              <p class="menu-title">Bili小尾巴 VRC弹幕版</p>
               <button class="menu-primary" type="button">切换小尾巴配置</button>
               <span>取消固定</span>
               <span>管理扩展程序</span>

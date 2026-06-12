@@ -162,6 +162,7 @@ body {
 .lesson-card {
   display: grid;
   gap: 18px;
+  min-width: 0;
   padding: 18px;
 }
 
@@ -194,6 +195,8 @@ body {
 .browser-shell {
   position: relative;
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid #e1e8e6;
   border-radius: 16px;
   background: var(--surface);
@@ -297,6 +300,8 @@ body {
 .bili-page {
   position: relative;
   display: grid;
+  min-width: 0;
+  max-width: 100%;
   grid-template-columns: 1fr 192px;
   grid-template-rows: 34px 268px auto;
   gap: 0 12px;
@@ -309,6 +314,8 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
+  overflow: hidden;
   padding: 0 16px;
   border-bottom: 1px solid #edf1f1;
   color: #5e6d70;
@@ -346,6 +353,7 @@ body {
 
 .video-area {
   display: grid;
+  min-width: 0;
   min-height: 268px;
   place-items: center;
   background: #101314;
@@ -401,6 +409,7 @@ body {
 }
 
 .video-meta {
+  min-width: 0;
   padding: 16px 18px 18px;
 }
 

@@ -1,7 +1,7 @@
 const steps = [
   {
     title: "解析普通视频",
-    text: "打开普通视频页，单击小尾巴图标，会复制 91biliplayer 播放地址。",
+    text: "普通模式打开视频页，单击小尾巴图标，会复制 91biliplayer 播放地址。",
     action: "single",
     address: "bilibili.com/video/BV1xx...",
     videoTitle: "我用 Open Design 跑通了按产品规范生成原型",
@@ -11,7 +11,7 @@ const steps = [
   },
   {
     title: "普通视频拿直链",
-    text: "只有普通视频想拿 B 站临时直链时，才快速双击小尾巴图标。",
+    text: "普通模式下想拿 B 站临时直链时，快速双击小尾巴图标。",
     action: "double",
     address: "bilibili.com/video/BV1xx...",
     videoTitle: "普通视频双击演示",
@@ -22,7 +22,7 @@ const steps = [
   },
   {
     title: "分P、列表、直播自动拿直链",
-    text: "分P会识别当前 P；列表页里的视频和直播间也会尽量自动拿直链。",
+    text: "普通模式会识别当前 P；列表页里的视频和直播间也会尽量自动拿直链。",
     action: "single",
     address: "bilibili.com/video/BV1xx...?p=2",
     videoTitle: "当前正在播放 P2",
@@ -31,13 +31,23 @@ const steps = [
     copied: "已复制当前分P直链啦"
   },
   {
+    title: "生成带弹幕 HLS",
+    text: "切到带弹幕模式后，单击小尾巴会把当前视频交给你的后端，生成可复制的 HLS 地址。",
+    action: "single",
+    address: "bilibili.com/video/BV1xx...",
+    videoTitle: "带弹幕版本正在生成",
+    meta: "普通视频 · 后端烧录弹幕 · 复制 HLS",
+    idle: "带弹幕模式需要先填后端地址",
+    copied: "带弹幕地址复制好啦，放进 VRC 试试看"
+  },
+  {
     title: "切换小尾巴配置",
-    text: "配置入口藏在扩展图标菜单里；这里会自动展开一次，认准“切换小尾巴配置”。",
+    text: "配置入口在扩展图标菜单里；这里会自动展开一次，认准“切换小尾巴配置”。",
     action: "menu",
     address: "chrome://extensions",
     videoTitle: "小尾巴配置入口",
-    meta: "右键扩展图标 · 切换小尾巴配置",
-    idle: "右上角菜单里也能打开配置",
+    meta: "切换普通 / 弹幕模式 · 填写后端地址",
+    idle: "右上角菜单里可以打开配置",
     copied: "配置入口在扩展图标菜单里"
   }
 ];
@@ -75,7 +85,7 @@ extensionMenu.addEventListener("click", (event) => {
   if (event.target.classList.contains("menu-primary")) {
     browserShell.classList.remove("copied", "nudged");
     browserShell.classList.add("menu-open");
-    mockToast.textContent = "这里会打开小尾巴配置页";
+    mockToast.textContent = "这里会打开模式和后端配置页";
   }
 });
 doneButton.addEventListener("click", () => {
