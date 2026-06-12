@@ -29,31 +29,33 @@ jobs:
 
       - name: Package extension
         run: |
-          zip -r -X "bili-tail-tool-${{ steps.version.outputs.version }}.zip" . \
+          zip -r -X "bili-tail-vrc-danmaku-${{ steps.version.outputs.version }}.zip" . \
             -x ".git/*" \
             -x ".github/*" \
             -x ".gitignore" \
             -x ".DS_Store" \
+            -x "backend/*" \
             -x "store-assets/*" \
             -x "*.zip"
 
       - name: Write release notes
         run: |
           cat > release-notes.md <<'EOF'
-          Bili小尾巴 VRC解析的正式发布包。
+          Bili小尾巴 VRC弹幕版的实验发布包。
 
-          Chrome Web Store:
+          普通版 Chrome Web Store:
           https://chromewebstore.google.com/detail/naeaecjabhcjeagenojhaiflljegmaca?utm_source=item-share-cb
 
           这个版本支持：
 
-          - 普通视频单击复制 91biliplayer 包装播放地址
-          - 普通视频双击复制 B 站临时直链
-          - 分P、列表页视频和直播间自动复制直链
-          - 扩展菜单里切换直链清晰度偏好
+          - 普通模式同款：单击普通视频复制 91biliplayer 包装播放地址
+          - 普通模式同款：双击普通视频复制 B 站临时直链
+          - 普通模式同款：分P、列表页视频和直播间自动复制直链
+          - 弹幕模式：连接自己填写的后端，生成带弹幕 HLS 地址并复制
+          - 扩展菜单里切换普通 / 弹幕模式、直链清晰度和后端地址
           - 首次安装后打开本地交互式教程页
 
-          说明：这是非官方工具，不隶属于 Bilibili、VRChat 或 91biliplayer。B 站临时直链可能会过期，播放结果取决于播放器、网络环境、第三方服务和视频权限。
+          说明：这是非官方实验工具，不隶属于 Bilibili、VRChat 或 91biliplayer。弹幕模式需要你自己的后端和 ffmpeg，B 站临时直链可能会过期，播放结果取决于播放器、网络环境、第三方服务和视频权限。
           EOF
 
       - name: Create GitHub release
@@ -61,6 +63,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            "bili-tail-tool-${{ steps.version.outputs.version }}.zip" \
-            --title "Bili小尾巴 VRC解析 ${{ steps.version.outputs.version }}" \
+            "bili-tail-vrc-danmaku-${{ steps.version.outputs.version }}.zip" \
+            --title "Bili小尾巴 VRC弹幕版 ${{ steps.version.outputs.version }}" \
             --notes-file release-notes.md
