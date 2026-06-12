@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Bili小尾巴 VRC解析",
-  "version": "0.5.4",
-  "description": "摇摇小尾巴，把B站视频轻轻变成VRC播放链接，一键复制带去世界里用。",
+  "name": "Bili小尾巴 VRC弹幕版",
+  "version": "0.2.0",
+  "description": "实验版小尾巴：把B站视频变成VRC可用链接，也能连接自己的后端生成带弹幕HLS。",
   "permissions": [
     "activeTab",
     "clipboardWrite",
@@ -15,7 +15,7 @@
     "https://api.live.bilibili.com/*"
   ],
   "action": {
-    "default_title": "Bili小尾巴 VRC解析",
+    "default_title": "Bili小尾巴 VRC弹幕版",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
