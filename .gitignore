@@ -3,3 +3,10 @@
 node_modules/
 dist/
 release/
+backend/jobs/
+backend/jobs-*/
+backend/out/
+backend/out-*/
+backend/*.log
+backend/.venv/
+backend/__pycache__/
