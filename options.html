@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bili小尾巴 VRC解析 小尾巴配置</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <main>
+      <header class="brand">
+        <img src="icons/icon-48.png" alt="">
+        <div>
+          <p>Bili小尾巴 VRC解析</p>
+          <h1>小尾巴配置</h1>
+        </div>
+      </header>
+
+      <form id="optionsForm">
+        <section class="rules">
+          <p><strong>普通视频单击</strong><span>复制 91biliplayer 播放地址</span></p>
+          <p><strong>普通视频双击</strong><span>复制 B 站临时直链</span></p>
+          <p><strong>分P / 列表 / 直播</strong><span>自动复制直链</span></p>
+        </section>
+
+        <section>
+          <label class="section-label" for="quality">直链清晰度偏好</label>
+          <select id="quality" name="quality">
+            <option value="80">1080P / 可用最高</option>
+            <option value="64">720P</option>
+            <option value="32">480P</option>
+            <option value="16">360P</option>
+          </select>
+          <p class="hint">B 站可能按实际可用清晰度自动降级；直播会自动选择更适合 VRC 的 HLS 流。</p>
+        </section>
+
+        <section class="notice">
+          <p>单击普通视频时会生成 <code>biliplayer.91vrchat.com</code> 的包装播放地址。这个服务不是本扩展作者提供，实际播放效果取决于 91biliplayer、B 站视频权限和网络环境。</p>
+        </section>
+
+        <p id="status" aria-live="polite"></p>
+      </form>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
