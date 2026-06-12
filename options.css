@@ -121,7 +121,9 @@ section {
 }
 
 .segmented span,
-select {
+select,
+input[type="text"],
+input[inputmode="numeric"] {
   display: grid;
   width: 100%;
   min-height: 38px;
@@ -146,13 +148,36 @@ select {
   color: var(--accent-strong);
 }
 
-select {
+select,
+input[type="text"],
+input[inputmode="numeric"] {
   padding: 0 10px;
+}
+
+.two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.two-cols label {
+  display: grid;
+  gap: 5px;
+}
+
+.mini-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .hint {
   color: var(--muted);
   font-size: 12px;
+}
+
+.hidden {
+  display: none !important;
 }
 
 .notice {

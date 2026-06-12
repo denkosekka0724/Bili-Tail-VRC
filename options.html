@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bili小尾巴 VRC解析 小尾巴配置</title>
+    <title>Bili小尾巴 VRC弹幕版 小尾巴配置</title>
     <link rel="stylesheet" href="options.css">
   </head>
   <body>
@@ -11,16 +11,30 @@
       <header class="brand">
         <img src="icons/icon-48.png" alt="">
         <div>
-          <p>Bili小尾巴 VRC解析</p>
+          <p>Bili小尾巴 VRC弹幕版</p>
           <h1>小尾巴配置</h1>
         </div>
       </header>
 
       <form id="optionsForm">
         <section class="rules">
-          <p><strong>普通视频单击</strong><span>复制 91biliplayer 播放地址</span></p>
-          <p><strong>普通视频双击</strong><span>复制 B 站临时直链</span></p>
-          <p><strong>分P / 列表 / 直播</strong><span>自动复制直链</span></p>
+          <p><strong>普通模式单击</strong><span>复制 91biliplayer 播放地址</span></p>
+          <p><strong>普通模式双击</strong><span>复制 B 站临时直链</span></p>
+          <p><strong>弹幕模式单击</strong><span>请求后端生成带弹幕 HLS</span></p>
+        </section>
+
+        <section>
+          <label class="section-label">复制模式</label>
+          <div class="segmented" role="radiogroup" aria-label="复制模式">
+            <label>
+              <input type="radio" name="copyMode" value="normal">
+              <span>普通同款</span>
+            </label>
+            <label>
+              <input type="radio" name="copyMode" value="danmaku">
+              <span>带弹幕 HLS</span>
+            </label>
+          </div>
         </section>
 
         <section>
@@ -31,11 +45,27 @@
             <option value="32">480P</option>
             <option value="16">360P</option>
           </select>
-          <p class="hint">B 站可能按实际可用清晰度自动降级；直播会自动选择更适合 VRC 的 HLS 流。</p>
+          <p class="hint">B 站可能按实际可用清晰度自动降级；普通模式下直播会自动选择更适合 VRC 的 HLS 流。</p>
+        </section>
+
+        <section id="danmakuSettings" class="hidden">
+          <label class="section-label" for="backendUrl">带弹幕后端地址</label>
+          <input id="backendUrl" name="backendUrl" type="text" placeholder="https://your-domain.example 或 http://127.0.0.1:8765">
+          <div class="two-cols">
+            <label>
+              <span class="mini-label">弹幕数量</span>
+              <input id="maxDanmaku" name="maxDanmaku" type="text" inputmode="numeric" value="1200">
+            </label>
+            <label>
+              <span class="mini-label">单条长度</span>
+              <input id="maxTextLength" name="maxTextLength" type="text" inputmode="numeric" value="80">
+            </label>
+          </div>
+          <p class="hint">公网使用建议 HTTPS；本地测试可用 <code>http://127.0.0.1:8765</code>。</p>
         </section>
 
         <section class="notice">
-          <p>单击普通视频时会生成 <code>biliplayer.91vrchat.com</code> 的包装播放地址。这个服务不是本扩展作者提供，实际播放效果取决于 91biliplayer、B 站视频权限和网络环境。</p>
+          <p>普通模式会使用 <code>biliplayer.91vrchat.com</code> 包装播放地址；弹幕模式只连接你自己填写的后端。两个服务都不是随插件一起提供，播放效果取决于服务、B 站权限和网络环境。</p>
         </section>
 
         <p id="status" aria-live="polite"></p>
