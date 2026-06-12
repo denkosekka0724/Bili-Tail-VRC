@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bili小尾巴 VRC解析 隐私政策</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fffaf1;
+        --panel: #fffdf8;
+        --text: #2b2927;
+        --muted: #746f68;
+        --line: #eadbc8;
+        --accent: #2f566e;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.7 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 40px 20px 64px;
+      }
+
+      article {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 30px;
+        line-height: 1.25;
+      }
+
+      h2 {
+        margin: 28px 0 8px;
+        color: var(--accent);
+        font-size: 20px;
+      }
+
+      p,
+      ul {
+        margin: 8px 0;
+      }
+
+      .date {
+        color: var(--muted);
+      }
+
+      code {
+        background: #f6eadb;
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <article>
+        <h1>Bili小尾巴 VRC解析 隐私政策</h1>
+        <p class="date">更新时间：2026-06-12</p>
+
+        <p><strong>Bili小尾巴 VRC解析</strong> 是一个用于把当前 B 站视频页、列表页里的视频或直播间解析成 VRChat/VRC 播放链接的 Chrome 扩展。</p>
+
+        <h2>我们收集什么</h2>
+        <p>本扩展不收集、出售、共享或上传用户个人信息。</p>
+        <p>本扩展不会保存：</p>
+        <ul>
+          <li>Bilibili 账号信息</li>
+          <li>Cookie 内容</li>
+          <li>密码或 Token</li>
+          <li>浏览历史记录</li>
+          <li>生成的链接</li>
+          <li>用户输入内容</li>
+        </ul>
+        <p>本扩展会使用 Chrome 扩展存储保存用户偏好设置，包括：</p>
+        <ul>
+          <li>清晰度偏好</li>
+        </ul>
+        <p>这些设置只保存在 Chrome 扩展存储中，用于扩展自身功能，不包含个人身份信息，也不会发送给作者服务器。</p>
+
+        <h2>扩展如何工作</h2>
+        <p>当用户点击扩展图标时，扩展会读取当前活动标签页的 URL，用于判断是否为 B 站视频页、列表页里的视频或直播间。对于分P视频，扩展会在本地读取当前页面的分P/cid 上下文，确保复制当前分P对应的地址。</p>
+        <p>如果当前页面是支持的视频页，扩展会向 Bilibili 官方 API 请求视频基础信息和播放信息，用于生成并复制：</p>
+        <ul>
+          <li>普通视频单击：91biliplayer 包装播放地址</li>
+          <li>普通视频双击、分P视频或列表页视频：B 站临时直链</li>
+          <li>直播间：直播临时直链</li>
+        </ul>
+        <p>这些请求只用于完成用户主动触发的解析操作。扩展不会把数据发送到作者服务器，也没有作者服务器。</p>
+
+        <h2>Cookie 说明</h2>
+        <p>扩展请求 Bilibili API 时使用不携带凭据的请求方式。扩展不会读取、显示、保存、转发或主动发送用户 Cookie。</p>
+
+        <h2>第三方服务</h2>
+        <p>普通视频单击时，扩展生成的 VRChat 播放包装链接会使用：</p>
+        <p><code>https://biliplayer.91vrchat.com/player/?url=</code></p>
+        <p>该链接用于让用户在 VRChat/VRC 播放器中尝试播放 B 站页面链接。该 91biliplayer 第三方服务不是本扩展作者提供，其可用性和隐私实践不由本扩展控制。</p>
+
+        <h2>联系</h2>
+        <p>如需支持，请通过 Chrome Web Store 页面提供的支持渠道联系发布者。</p>
+      </article>
+    </main>
+  </body>
+</html>
