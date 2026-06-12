@@ -54,17 +54,20 @@ http://127.0.0.1:8765
 
 ## 打包
 
-仓库根目录就是扩展根目录。给 Chrome/Edge 上传时只打包扩展运行文件，不要把 `backend/`、`store-assets/` 或 `.git/` 一起塞进 zip。
+仓库根目录就是扩展根目录。给 Chrome/Edge 上传时只打包扩展运行文件，不要把 `backend/`、`store-assets/` 或 `.git/` 一起塞进 zip。Chrome 和 Edge 包内容保持一致，只用文件名区分上传渠道。
 
 ```sh
-zip -r -X bili-tail-vrc-danmaku.zip . \
-  -x '.git/*' \
-  -x '.github/*' \
-  -x '.gitignore' \
-  -x '.DS_Store' \
-  -x 'backend/*' \
-  -x 'store-assets/*' \
-  -x '*.zip'
+for target in chrome edge; do
+  zip -r -X "bili-tail-vrc-danmaku-${target}-0.2.0.zip" . \
+    -x '.git/*' \
+    -x '.github/*' \
+    -x '.gitignore' \
+    -x '.DS_Store' \
+    -x 'backend/*' \
+    -x 'store-assets/*' \
+    -x 'release/*' \
+    -x '*.zip'
+done
 ```
 
 ## 文件用途

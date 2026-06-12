@@ -27,16 +27,35 @@ jobs:
           )"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Package extension
+      - name: Package Chrome and Edge extensions
         run: |
-          zip -r -X "bili-tail-vrc-danmaku-${{ steps.version.outputs.version }}.zip" . \
-            -x ".git/*" \
-            -x ".github/*" \
-            -x ".gitignore" \
-            -x ".DS_Store" \
-            -x "backend/*" \
-            -x "store-assets/*" \
-            -x "*.zip"
+          for target in chrome edge; do
+            zip -r -X "bili-tail-vrc-danmaku-${target}-${{ steps.version.outputs.version }}.zip" . \
+              -x ".git/*" \
+              -x ".github/*" \
+              -x ".gitignore" \
+              -x ".DS_Store" \
+              -x "backend/*" \
+              -x "store-assets/*" \
+              -x "*.zip"
+          done
+
+      - name: Check package contents
+        run: |
+          for target in chrome edge; do
+            unzip -l "bili-tail-vrc-danmaku-${target}-${{ steps.version.outputs.version }}.zip"
+          done
+          if unzip -l "bili-tail-vrc-danmaku-chrome-${{ steps.version.outputs.version }}.zip" | grep -E "backend/|store-assets/|\\.git/"; then
+            echo "Unexpected non-extension files in package"
+            exit 1
+          fi
+          if unzip -l "bili-tail-vrc-danmaku-edge-${{ steps.version.outputs.version }}.zip" | grep -E "backend/|store-assets/|\\.git/"; then
+            echo "Unexpected non-extension files in package"
+            exit 1
+          fi
+          cmp \
+            <(unzip -Z1 "bili-tail-vrc-danmaku-chrome-${{ steps.version.outputs.version }}.zip" | sort) \
+            <(unzip -Z1 "bili-tail-vrc-danmaku-edge-${{ steps.version.outputs.version }}.zip" | sort)
 
       - name: Write release notes
         run: |
@@ -54,6 +73,7 @@ jobs:
           - 弹幕模式：连接自己填写的后端，生成带弹幕 HLS 地址并复制
           - 扩展菜单里切换普通 / 弹幕模式、直链清晰度和后端地址
           - 首次安装后打开本地交互式教程页
+          - Release 同时提供 Chrome 和 Edge 两个命名包，两个包内容一致
 
           说明：这是非官方实验工具，不隶属于 Bilibili、VRChat 或 91biliplayer。弹幕模式需要你自己的后端和 ffmpeg，B 站临时直链可能会过期，播放结果取决于播放器、网络环境、第三方服务和视频权限。
           EOF
@@ -63,6 +83,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            "bili-tail-vrc-danmaku-${{ steps.version.outputs.version }}.zip" \
+            "bili-tail-vrc-danmaku-chrome-${{ steps.version.outputs.version }}.zip" \
+            "bili-tail-vrc-danmaku-edge-${{ steps.version.outputs.version }}.zip" \
             --title "Bili小尾巴 VRC弹幕版 ${{ steps.version.outputs.version }}" \
             --notes-file release-notes.md

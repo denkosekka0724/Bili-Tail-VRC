@@ -1,6 +1,7 @@
 # Store Asset Checklist
 
-- Extension package ZIP: `release/bili-tail-vrc-danmaku-0.2.0.zip`
+- Chrome extension package ZIP: `release/bili-tail-vrc-danmaku-chrome-0.2.0.zip`
+- Edge extension package ZIP: `release/bili-tail-vrc-danmaku-edge-0.2.0.zip`
 - Main screenshot: `store-assets/screenshots/screenshot-1280x800-main.png`
 - Privacy/usage screenshot: `store-assets/screenshots/screenshot-1280x800-privacy.png`
 - Small promo tile: `store-assets/promotional/small-promo-440x280.png`
