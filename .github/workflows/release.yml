@@ -1,0 +1,66 @@
+name: Release extension
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read extension version
+        id: version
+        run: |
+          version="$(python3 - <<'PY'
+          import json
+          with open('manifest.json', encoding='utf-8') as f:
+              print(json.load(f)['version'])
+          PY
+          )"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Package extension
+        run: |
+          zip -r -X "bili-tail-tool-${{ steps.version.outputs.version }}.zip" . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x ".gitignore" \
+            -x ".DS_Store" \
+            -x "store-assets/*" \
+            -x "*.zip"
+
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'EOF'
+          Bili小尾巴 VRC解析的正式发布包。
+
+          Chrome Web Store:
+          https://chromewebstore.google.com/detail/naeaecjabhcjeagenojhaiflljegmaca?utm_source=item-share-cb
+
+          这个版本支持：
+
+          - 普通视频单击复制 91biliplayer 包装播放地址
+          - 普通视频双击复制 B 站临时直链
+          - 分P、列表页视频和直播间自动复制直链
+          - 扩展菜单里切换直链清晰度偏好
+          - 首次安装后打开本地交互式教程页
+
+          说明：这是非官方工具，不隶属于 Bilibili、VRChat 或 91biliplayer。B 站临时直链可能会过期，播放结果取决于播放器、网络环境、第三方服务和视频权限。
+          EOF
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "bili-tail-tool-${{ steps.version.outputs.version }}.zip" \
+            --title "Bili小尾巴 VRC解析 ${{ steps.version.outputs.version }}" \
+            --notes-file release-notes.md
