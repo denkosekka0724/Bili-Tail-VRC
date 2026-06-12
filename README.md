@@ -89,7 +89,7 @@ Chrome Web Store / Edge Add-ons 用的说明、权限理由和预览图放在：
 
 ## 实现说明
 
-- Bilibili API 流程参考了 `injahow/bilibili-parse` 的思路：先通过 `x/web-interface/view` 获取 `cid`，再通过 `x/player/playurl` 获取播放信息。
+- Bilibili API 流程参考了 `injahow/bilibili-parse (https://github.com/LgcChina/BiliSongListTool)` 的思路：先通过 `x/web-interface/view` 获取 `cid`，再通过 `x/player/playurl` 获取播放信息。
 - VRChat 播放器链接工作流参考了 `LgcChina/BiliSongListTool` 的使用场景。
 - 扩展使用原生 JavaScript 编写，不需要 PHP、Unity 或构建步骤。
 - 扩展不包含作者服务器，不收集、出售、共享或上传用户个人信息。
