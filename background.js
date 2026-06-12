@@ -1,9 +1,14 @@
 const BILI_PLAYER_PREFIX = "https://biliplayer.91vrchat.com/player/?url=";
 const DEFAULT_OPTIONS = {
-  quality: "80"
+  copyMode: "normal",
+  quality: "80",
+  backendUrl: "",
+  maxDanmaku: "1200",
+  maxTextLength: "80"
 };
 const DOUBLE_CLICK_MS = 420;
 const CONFIG_MENU_ID = "open-bili-tail-config";
+const DANMAKU_SUCCESS_MESSAGE = "带弹幕地址复制好啦，放进 VRC 试试看";
 const pendingClicks = new Map();
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -23,7 +28,7 @@ chrome.action.onClicked.addListener((tab) => {
     clearTimeout(existing.timer);
     pendingClicks.delete(tabId);
     handleActionClick(tab, "direct").catch((error) => {
-      console.warn("[Bili小尾巴 VRC解析] double click failed", error && error.message ? error.message : error);
+      console.warn("[Bili小尾巴 VRC弹幕版] double click failed", error && error.message ? error.message : error);
       showToastOnly(tabId, makeUserErrorMessage(error), true);
     });
     return;
@@ -32,7 +37,7 @@ chrome.action.onClicked.addListener((tab) => {
   const timer = setTimeout(() => {
     pendingClicks.delete(tabId);
     handleActionClick(tab, "normal").catch((error) => {
-      console.warn("[Bili小尾巴 VRC解析] click failed", error && error.message ? error.message : error);
+      console.warn("[Bili小尾巴 VRC弹幕版] click failed", error && error.message ? error.message : error);
       showToastOnly(tabId, makeUserErrorMessage(error), true);
     });
   }, DOUBLE_CLICK_MS);
@@ -88,6 +93,11 @@ async function handleActionClick(tab, clickMode) {
     throw new Error("没有识别到这个 B 站视频");
   }
 
+  if (options.copyMode === "danmaku" && clickMode !== "direct") {
+    await handleDanmakuBackendClick(tabId, effectiveUrl, input, options);
+    return;
+  }
+
   if (isLiveRoom || isMultipage || input.fromListLikePage || clickMode === "direct") {
     const directUrl = await getBestDirectUrl(tabId, effectiveUrl, pageContext, options);
     if (!directUrl) {
@@ -135,10 +145,141 @@ function getSavedOptions() {
       }
 
       resolve({
-        quality: ["80", "64", "32", "16"].includes(String(items.quality)) ? String(items.quality) : DEFAULT_OPTIONS.quality
+        copyMode: items.copyMode === "danmaku" ? "danmaku" : DEFAULT_OPTIONS.copyMode,
+        quality: ["80", "64", "32", "16"].includes(String(items.quality)) ? String(items.quality) : DEFAULT_OPTIONS.quality,
+        backendUrl: typeof items.backendUrl === "string" ? items.backendUrl.trim() : "",
+        maxDanmaku: positiveInt(items.maxDanmaku, Number(DEFAULT_OPTIONS.maxDanmaku)),
+        maxTextLength: positiveInt(items.maxTextLength, Number(DEFAULT_OPTIONS.maxTextLength))
       });
     });
   });
+}
+
+async function handleDanmakuBackendClick(tabId, effectiveUrl, input, options) {
+  if (!input || input.type !== "video") {
+    throw new Error("带弹幕模式目前只支持 B 站普通 BV/av 视频页");
+  }
+
+  const backendUrl = normalizeBackendUrl(options.backendUrl);
+  if (!backendUrl) {
+    throw new Error("还没有填写带弹幕后端地址，先在配置页填一下就好");
+  }
+
+  await showToastOnly(tabId, "正在生成带弹幕版本，可能要等一小会儿", false);
+
+  let response;
+  try {
+    response = await runDanmakuBackendJob(tabId, {
+      backendUrl,
+      videoUrl: effectiveUrl,
+      quality: options.quality,
+      maxDanmaku: options.maxDanmaku,
+      maxTextLength: options.maxTextLength
+    });
+  } catch {
+    throw new Error("后端连接失败啦：请检查地址、HTTPS 和 CORS 设置");
+  }
+
+  if (!response || !response.ok || !response.hlsUrl) {
+    throw new Error(response && response.error ? response.error : "带弹幕地址没有生成成功");
+  }
+
+  await copyTextAndToast(tabId, response.hlsUrl, DANMAKU_SUCCESS_MESSAGE, false);
+}
+
+async function runDanmakuBackendJob(tabId, payload) {
+  const injected = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: createDanmakuJobAndWait,
+    args: [payload]
+  });
+
+  return injected && injected[0] ? injected[0].result : null;
+}
+
+async function createDanmakuJobAndWait(payload) {
+  const backendUrl = payload.backendUrl.replace(/\/+$/, "");
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const createResponse = await fetch(`${backendUrl}/api/jobs`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      url: payload.videoUrl,
+      quality: String(payload.quality || "80"),
+      maxDanmaku: Number(payload.maxDanmaku || 1200),
+      maxTextLength: Number(payload.maxTextLength || 80)
+    })
+  });
+
+  const created = await createResponse.json().catch(() => null);
+  if (!createResponse.ok || !created || !created.ok || !created.job || !created.job.id) {
+    return {
+      ok: false,
+      error: created && created.error ? created.error : "后端没有接受这个任务"
+    };
+  }
+
+  const jobId = created.job.id;
+  const deadline = Date.now() + 10 * 60 * 1000;
+  while (Date.now() < deadline) {
+    const pollResponse = await fetch(`${backendUrl}/api/jobs/${encodeURIComponent(jobId)}`);
+    const polled = await pollResponse.json().catch(() => null);
+    if (!pollResponse.ok || !polled || !polled.ok || !polled.job) {
+      return {
+        ok: false,
+        error: "后端任务查询失败"
+      };
+    }
+
+    const job = polled.job;
+    if (job.status === "ready" && job.hlsUrl) {
+      return {
+        ok: true,
+        hlsUrl: job.hlsUrl
+      };
+    }
+    if (job.status === "needs_ffmpeg") {
+      return {
+        ok: false,
+        error: "后端还没有 ffmpeg，带弹幕版本暂时烤不出来"
+      };
+    }
+    if (job.status === "error") {
+      return {
+        ok: false,
+        error: job.message || "后端生成带弹幕版本失败了"
+      };
+    }
+
+    await sleep(2000);
+  }
+
+  return {
+    ok: false,
+    error: "带弹幕版本还没生成好，稍后再试一下"
+  };
+}
+
+function normalizeBackendUrl(value) {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  let url;
+  try {
+    url = new URL(value.trim());
+  } catch {
+    return "";
+  }
+
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    return "";
+  }
+
+  url.hash = "";
+  return url.toString().replace(/\/+$/, "");
 }
 
 async function getBestDirectUrl(tabId, tabUrl, pageContext, options) {
@@ -257,7 +398,7 @@ async function getCurrentVideoPageContext(tabId) {
 
     return result && result.result && typeof result.result === "object" ? result.result : {};
   } catch (error) {
-    console.warn("[Bili小尾巴 VRC解析] read page context failed", error && error.message ? error.message : error);
+    console.warn("[Bili小尾巴 VRC弹幕版] read page context failed", error && error.message ? error.message : error);
     return {};
   }
 }
@@ -305,7 +446,7 @@ async function isMultipageVideoUrl(rawUrl, pageContext = {}) {
     const pages = Array.isArray(view.pages) ? view.pages : [];
     return positiveInt(view.videos, pages.length) > 1 || pages.length > 1;
   } catch (error) {
-    console.warn("[Bili小尾巴 VRC解析] multipage check failed", error && error.message ? error.message : error);
+    console.warn("[Bili小尾巴 VRC弹幕版] multipage check failed", error && error.message ? error.message : error);
     return false;
   }
 }
@@ -654,7 +795,7 @@ async function showToastOnly(tabId, message, isError) {
   try {
     await copyTextAndToast(tabId, "", message, isError);
   } catch (error) {
-    console.warn("[Bili小尾巴 VRC解析] toast failed", error && error.message ? error.message : error);
+    console.warn("[Bili小尾巴 VRC弹幕版] toast failed", error && error.message ? error.message : error);
   }
 }
 
@@ -751,6 +892,7 @@ async function copyTextAndShowToast(text, message, isError) {
 
 function makeUserErrorMessage(error) {
   const message = error && error.message ? error.message : "";
+  if (message.includes("后端") || message.includes("弹幕") || message.includes("ffmpeg") || message.includes("填写")) return message;
   if (message.includes("没有开播")) return "这个直播间还没开播，暂时拿不到直链";
   if (message.includes("不是 B 站") || message.includes("请在 B 站")) return "先打开 B 站视频或直播间，再点小尾巴就好啦";
   if (message.includes("HTTP") || message.includes("请求失败")) return "B 站接口刚刚没回应，刷新页面后再试一下";
