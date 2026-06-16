@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bili小尾巴 VRC解析",
-  "version": "0.5.4",
+  "version": "0.6.1",
   "description": "摇摇小尾巴，把B站视频轻轻变成VRC播放链接，一键复制带去世界里用。",
   "permissions": [
     "activeTab",
@@ -12,7 +12,8 @@
   ],
   "host_permissions": [
     "https://api.bilibili.com/*",
-    "https://api.live.bilibili.com/*"
+    "https://api.live.bilibili.com/*",
+    "https://music.znnu.com/*"
   ],
   "action": {
     "default_title": "Bili小尾巴 VRC解析",

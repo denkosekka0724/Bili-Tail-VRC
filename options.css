@@ -150,6 +150,10 @@ select {
   padding: 0 10px;
 }
 
+.netease-panel {
+  padding-top: 2px;
+}
+
 .hint {
   color: var(--muted);
   font-size: 12px;

@@ -21,6 +21,7 @@
           <p><strong>普通视频单击</strong><span>复制 91biliplayer 播放地址</span></p>
           <p><strong>普通视频双击</strong><span>复制 B 站临时直链</span></p>
           <p><strong>分P / 列表 / 直播</strong><span>自动复制直链</span></p>
+          <p><strong>网易云单曲</strong><span>自动复制音频直链</span></p>
         </section>
 
         <section>
@@ -34,8 +35,22 @@
           <p class="hint">B 站可能按实际可用清晰度自动降级；直播会自动选择更适合 VRC 的 HLS 流。</p>
         </section>
 
+        <section class="netease-panel">
+          <label class="section-label" for="neteaseLevel">网易云音质偏好</label>
+          <select id="neteaseLevel" name="neteaseLevel">
+            <option value="standard">标准音质</option>
+            <option value="exhigh">极高音质</option>
+            <option value="lossless">无损音质</option>
+            <option value="hires">Hi-Res</option>
+            <option value="sky">沉浸环绕声</option>
+            <option value="jyeffect">高清环绕声</option>
+            <option value="jymaster">超清母带</option>
+          </select>
+          <p class="hint">实际可用音质会按歌曲版权和解析服务状态自动处理。</p>
+        </section>
+
         <section class="notice">
-          <p>单击普通视频时会生成 <code>biliplayer.91vrchat.com</code> 的包装播放地址。这个服务不是本扩展作者提供，实际播放效果取决于 91biliplayer、B 站视频权限和网络环境。</p>
+          <p>单击普通视频时会生成 <code>biliplayer.91vrchat.com</code> 的包装播放地址。网易云单曲会使用内置解析通道，只发送歌曲 ID。</p>
         </section>
 
         <p id="status" aria-live="polite"></p>

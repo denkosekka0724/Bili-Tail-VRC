@@ -1,10 +1,16 @@
 const BILI_PLAYER_PREFIX = "https://biliplayer.91vrchat.com/player/?url=";
+const ZNNU_BASE_URL = "https://music.znnu.com";
+const ZNNU_REFERER = "musicParser";
+const ZNNU_SIGNATURE_SECRET = "a09d0f3700a279584e1515354fbe08a7ee1c617f919543142fa625b82f1b5ad0";
 const DEFAULT_OPTIONS = {
-  quality: "80"
+  quality: "80",
+  neteaseLevel: "standard"
 };
 const DOUBLE_CLICK_MS = 420;
 const CONFIG_MENU_ID = "open-bili-tail-config";
 const pendingClicks = new Map();
+let znnuKeySession = null;
+let znnuIp = null;
 
 chrome.runtime.onInstalled.addListener((details) => {
   setupConfigMenu();
@@ -73,11 +79,16 @@ async function handleActionClick(tab, clickMode) {
   const tabUrl = tab && tab.url ? tab.url : "";
   if (!tabId) return;
 
-  if (!isBiliPageUrl(tabUrl)) {
-    throw new Error("请在 B 站视频页或直播间使用小尾巴");
+  const options = await getSavedOptions();
+  if (isNeteasePageUrl(tabUrl)) {
+    await handleNeteaseAction(tabId, tabUrl, options);
+    return;
   }
 
-  const options = await getSavedOptions();
+  if (!isBiliPageUrl(tabUrl)) {
+    throw new Error("请在 B 站视频、直播间或网易云单曲页使用小尾巴");
+  }
+
   const isLiveRoom = isLiveBiliRoomUrl(tabUrl);
   const pageContext = isLiveRoom ? {} : await getCurrentVideoPageContext(tabId);
   const effectiveUrl = isLiveRoom ? tabUrl : applyVideoPageContextToUrl(tabUrl, pageContext);
@@ -106,6 +117,15 @@ function isBiliPageUrl(url = "") {
   return url.startsWith("https://www.bilibili.com/") || url.startsWith("https://live.bilibili.com/");
 }
 
+function isNeteasePageUrl(rawUrl = "") {
+  try {
+    const url = new URL(rawUrl);
+    return url.hostname === "music.163.com" || url.hostname === "y.music.163.com";
+  } catch {
+    return false;
+  }
+}
+
 function isLiveBiliRoomUrl(rawUrl = "") {
   try {
     const url = new URL(rawUrl);
@@ -126,6 +146,236 @@ function buildPlayerUrl(rawUrl) {
   return BILI_PLAYER_PREFIX + encodeURIComponent(rawUrl);
 }
 
+async function handleNeteaseAction(tabId, tabUrl, options) {
+  const input = parseNeteaseUrl(tabUrl);
+  if (!input) {
+    throw new Error("请打开网易云单曲页再点小尾巴");
+  }
+
+  const directUrl = await getNeteaseDirectUrl(input, options);
+  if (!directUrl) {
+    throw new Error("网易云后端没有返回可用音频直链");
+  }
+
+  await copyTextAndToast(tabId, directUrl, "已复制网易云音频直链啦", false);
+}
+
+function parseNeteaseUrl(rawUrl = "") {
+  let url;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return null;
+  }
+
+  const candidates = [{ pathname: url.pathname, searchParams: url.searchParams }];
+  const hash = url.hash ? url.hash.replace(/^#\/?/, "/") : "";
+  if (hash) {
+    try {
+      const hashUrl = new URL(hash, "https://music.163.com");
+      candidates.push({ pathname: hashUrl.pathname, searchParams: hashUrl.searchParams });
+    } catch {}
+  }
+
+  for (const candidate of candidates) {
+    const path = candidate.pathname || "";
+    const isSongPath = /(^|\/)song(\/|$)/.test(path) || path.includes("/song/media/outer/url");
+    const id = normalizeAid(candidate.searchParams.get("id") || "");
+    if (isSongPath && id) {
+      return { type: "song", id, url: rawUrl };
+    }
+  }
+
+  return null;
+}
+
+async function getNeteaseDirectUrl(input, options) {
+  const level = normalizeNeteaseLevel(options.neteaseLevel);
+  const session = await getZnnuKeySession();
+  const ip = await getZnnuIp();
+  const payload = {
+    act: "song",
+    id: input.id,
+    level,
+    rawInput: input.id,
+    ip
+  };
+  const signed = await signZnnuPayload(payload);
+  const body = new URLSearchParams({
+    ...payload,
+    signature: signed.signature,
+    timestamp: String(signed.timestamp),
+    domain: signed.domain
+  });
+  const json = await postZnnuForm("/api/song", body, session.keyToken);
+  const decoded = await decodeZnnuResponse(json, session.key);
+
+  if (decoded && decoded.code !== 200) {
+    throw new Error(decoded.msg || decoded.message || "网易云解析失败");
+  }
+
+  return extractNeteaseDirectUrl(decoded);
+}
+
+function extractNeteaseDirectUrl(json) {
+  if (!json || typeof json !== "object") return "";
+
+  const candidates = [
+    json.url,
+    json.data && json.data.url,
+    json.data && json.data.audioUrl,
+    json.data && json.data.data && Array.isArray(json.data.data) && json.data.data[0] && json.data.data[0].url,
+    Array.isArray(json.data) && json.data[0] && json.data[0].url
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = typeof candidate === "string" ? candidate.replace(/`/g, "").trim() : "";
+    if (/^https?:\/\//i.test(normalized)) {
+      return normalized;
+    }
+  }
+
+  return "";
+}
+
+async function getZnnuKeySession() {
+  const now = Math.floor(Date.now() / 1000);
+  if (znnuKeySession && positiveInt(znnuKeySession.expireAt, 0) - 5 > now) {
+    return znnuKeySession;
+  }
+
+  const json = await getZnnuJson("/api/key");
+  const data = json && json.data ? json.data : null;
+  if (json.code !== 200 || !data || !data.key || !data.keyToken || !data.expireAt) {
+    throw new Error(json.msg || json.message || "获取网易云解析密钥失败");
+  }
+
+  znnuKeySession = {
+    key: data.key,
+    keyToken: data.keyToken,
+    expireAt: positiveInt(data.expireAt, 0)
+  };
+  return znnuKeySession;
+}
+
+async function getZnnuIp() {
+  if (znnuIp !== null) return znnuIp;
+
+  try {
+    const json = await getZnnuJson("/api/ip");
+    znnuIp = json && typeof json.ip === "string" ? json.ip : "";
+  } catch {
+    znnuIp = "";
+  }
+
+  return znnuIp;
+}
+
+async function getZnnuJson(path) {
+  const response = await fetch(ZNNU_BASE_URL + path, {
+    method: "GET",
+    credentials: "omit",
+    headers: {
+      "Accept": "application/json, text/plain, */*",
+      "X-Referer": ZNNU_REFERER
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`网易云解析请求失败: HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function postZnnuForm(path, body, keyToken) {
+  const response = await fetch(ZNNU_BASE_URL + path, {
+    method: "POST",
+    credentials: "omit",
+    headers: {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-Referer": ZNNU_REFERER,
+      "X-Key-Token": keyToken
+    },
+    body
+  });
+
+  if (!response.ok) {
+    throw new Error(`网易云解析请求失败: HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function signZnnuPayload(payload) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const domain = "music.znnu.com";
+  const cleanPayload = { ...payload };
+  delete cleanPayload.signature;
+  delete cleanPayload.timestamp;
+  delete cleanPayload.domain;
+  delete cleanPayload.ver;
+
+  const signString = Object.keys(cleanPayload)
+    .sort()
+    .reduce((result, key) => result + key + "=" + cleanPayload[key], String(timestamp) + domain);
+
+  const signature = await hmacSha256Hex(ZNNU_SIGNATURE_SECRET, signString);
+  return { signature, timestamp, domain };
+}
+
+async function hmacSha256Hex(secret, text) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(text));
+  return bytesToHex(new Uint8Array(signature));
+}
+
+async function decodeZnnuResponse(json, keyBase64) {
+  if (!json || !json.data || json.data.enc !== 1 || json.data.alg !== "AES-256-GCM") {
+    return json;
+  }
+
+  const keyBytes = base64ToBytes(keyBase64);
+  const iv = base64ToBytes(json.data.iv);
+  const ciphertext = base64ToBytes(json.data.ciphertext);
+  const tag = base64ToBytes(json.data.tag);
+  const encrypted = new Uint8Array(ciphertext.length + tag.length);
+  encrypted.set(ciphertext, 0);
+  encrypted.set(tag, ciphertext.length);
+  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]);
+  const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encrypted);
+  const data = JSON.parse(new TextDecoder().decode(new Uint8Array(decrypted)));
+  return { ...json, data };
+}
+
+function base64ToBytes(value) {
+  const binary = atob(String(value || ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function normalizeNeteaseLevel(value) {
+  const text = String(value || "").trim();
+  return ["standard", "exhigh", "lossless", "hires", "sky", "jyeffect", "jymaster"].includes(text)
+    ? text
+    : DEFAULT_OPTIONS.neteaseLevel;
+}
+
 function getSavedOptions() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(DEFAULT_OPTIONS, (items) => {
@@ -135,7 +385,8 @@ function getSavedOptions() {
       }
 
       resolve({
-        quality: ["80", "64", "32", "16"].includes(String(items.quality)) ? String(items.quality) : DEFAULT_OPTIONS.quality
+        quality: ["80", "64", "32", "16"].includes(String(items.quality)) ? String(items.quality) : DEFAULT_OPTIONS.quality,
+        neteaseLevel: normalizeNeteaseLevel(items.neteaseLevel)
       });
     });
   });
@@ -751,9 +1002,15 @@ async function copyTextAndShowToast(text, message, isError) {
 
 function makeUserErrorMessage(error) {
   const message = error && error.message ? error.message : "";
+  if (message.includes("网易云后端没有返回")) return "网易云没有给到直链，可能是歌曲版权、会员权限或临时限制";
+  if (message.includes("获取网易云解析密钥")) return "网易云解析通道暂时没准备好，稍后再试一下";
+  if (message.includes("网易云解析失败")) return message;
+  if (message.includes("歌曲无法播放") || message.includes("VIP") || message.includes("已下架")) return message;
+  if (message.includes("网易云单曲页")) return message;
+  if (message.includes("Failed to fetch")) return "网易云解析通道暂时没连上，稍后再试一下";
   if (message.includes("没有开播")) return "这个直播间还没开播，暂时拿不到直链";
-  if (message.includes("不是 B 站") || message.includes("请在 B 站")) return "先打开 B 站视频或直播间，再点小尾巴就好啦";
-  if (message.includes("HTTP") || message.includes("请求失败")) return "B 站接口刚刚没回应，刷新页面后再试一下";
+  if (message.includes("不是 B 站") || message.includes("请在 B 站") || message.includes("请在 B 站视频")) return "先打开 B 站视频、直播间或网易云单曲页，再点小尾巴就好啦";
+  if (message.includes("HTTP") || message.includes("请求失败")) return "解析接口刚刚没回应，刷新页面或检查本机服务后再试一下";
   if (message.includes("获取播放地址失败")) return "B 站暂时没给到播放地址，可能是权限或网络限制";
   if (message.includes("番剧") || message.includes("课程")) return message;
   if (message.includes("直链") || message.includes("分P") || message.includes("直播")) return message;

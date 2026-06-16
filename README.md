@@ -1,10 +1,12 @@
-# Bili Tail Tool
+# Bili Tail Tool - ZNNU 实验分支
 
-Bili小尾巴 VRC解析是一个轻量的 Chromium 浏览器扩展，用来把当前 B 站普通视频、分P、列表页视频和直播间解析成可以带去 VRChat/VRC 播放器里尝试使用的链接。
+这是从 `bili-tail-vrc-chrome-0.6.1-znnu.zip` 恢复出来的 ZNNU 实验分支。它保留 Bili小尾巴 VRC解析的 B 站解析能力，同时额外加入网易云单曲解析：用户在网易云单曲页点击扩展图标时，扩展会把歌曲 ID 交给 `music.znnu.com` 解析，并复制返回的音频直链。
+
+这个分支用于留档和继续实验，不是当前 Chrome Web Store 正式版。正式上架版仍建议使用只包含 B 站解析的主分支。
 
 ## Chrome 商店安装
 
-已经上架 Chrome Web Store：
+正式 B 站版本已经上架 Chrome Web Store：
 
 https://chromewebstore.google.com/detail/naeaecjabhcjeagenojhaiflljegmaca?utm_source=item-share-cb
 
@@ -13,7 +15,8 @@ https://chromewebstore.google.com/detail/naeaecjabhcjeagenojhaiflljegmaca?utm_so
 - 普通视频单击扩展图标：复制 91biliplayer 包装播放地址。
 - 普通视频快速双击扩展图标：复制 B 站临时直链。
 - 分P、列表页视频和直播间：自动复制对应的临时直链。
-- 扩展图标菜单：打开“切换小尾巴配置”，设置直链清晰度偏好。
+- 网易云单曲页：通过 `music.znnu.com` 解析并复制音频直链。
+- 扩展图标菜单：打开“切换小尾巴配置”，设置 B 站直链清晰度和网易云音质偏好。
 - 首次安装：打开本地交互式教程页，演示单击、双击、自动直链和配置入口。
 
 ## 本地安装
@@ -38,7 +41,7 @@ Edge:
 
 ```sh
 for target in chrome edge; do
-  zip -r -X "bili-tail-vrc-${target}-0.5.4.zip" . \
+  zip -r -X "bili-tail-vrc-znnu-${target}-0.6.1.zip" . \
     -x '.git/*' \
     -x '.github/*' \
     -x '.gitignore' \
@@ -66,10 +69,10 @@ Chrome Web Store / Edge Add-ons 用的说明、权限理由和预览图放在：
 | `.gitignore` | 告诉 Git 忽略 `.DS_Store`、zip 包、构建目录和依赖目录，避免把本机或临时产物提交上来。 |
 | `README.md` | 项目说明，写明插件能做什么、怎么本地安装、怎么打包，以及每个文件的用途。 |
 | `manifest.json` | 浏览器扩展清单。定义插件名称、版本、权限、图标、后台脚本和扩展按钮，是 Chrome/Edge 识别插件的入口文件。 |
-| `background.js` | 插件的核心逻辑。监听扩展图标点击、双击和右键菜单，读取当前 B 站页面信息，请求 Bilibili API，生成 91biliplayer 包装链接或 B 站临时直链，并把结果复制到剪贴板。 |
+| `background.js` | 插件的核心逻辑。监听扩展图标点击、双击和右键菜单，读取当前页面信息；B 站页面会请求 Bilibili API，生成 91biliplayer 包装链接或 B 站临时直链；网易云单曲页会调用 `music.znnu.com` 的解析接口并复制返回的音频直链。 |
 | `options.html` | 设置页结构。用户从扩展图标菜单打开“切换小尾巴配置”时看到这个页面。 |
 | `options.css` | 设置页样式。负责设置页的卡片、按钮、下拉框、状态提示等视觉效果。 |
-| `options.js` | 设置页交互逻辑。读取和保存用户的默认清晰度偏好，使用浏览器扩展存储保存设置。 |
+| `options.js` | 设置页交互逻辑。读取和保存 B 站直链清晰度偏好、网易云音质偏好，使用浏览器扩展存储保存设置。 |
 | `welcome.html` | 首次安装后的使用教程页结构。它是本地页面，不请求远程资源，用模拟浏览器界面演示如何点击小尾巴。 |
 | `welcome.css` | 教程页样式。负责欢迎页布局、步骤列表、模拟浏览器、提示气泡和按钮的视觉效果。 |
 | `welcome.js` | 教程页交互逻辑。控制 4 个教程步骤切换，模拟单击、双击、自动直链和扩展菜单入口。 |
@@ -100,8 +103,9 @@ Chrome Web Store / Edge Add-ons 用的说明、权限理由和预览图放在：
 
 ## 实现说明
 
-- Bilibili API 流程参考了 `injahow/bilibili-parse (https://github.com/LgcChina/BiliSongListTool)` 的思路：先通过 `x/web-interface/view` 获取 `cid`，再通过 `x/player/playurl` 获取播放信息。
+- Bilibili API 流程参考了 `injahow/bilibili-parse` 的思路：先通过 `x/web-interface/view` 获取 `cid`，再通过 `x/player/playurl` 获取播放信息。
 - VRChat 播放器链接工作流参考了 `LgcChina/BiliSongListTool` 的使用场景。
+- 网易云实验功能依赖 `music.znnu.com`；扩展只向该服务发送歌曲 ID 和音质偏好，不提供作者自建解析服务器。
 - 扩展使用原生 JavaScript 编写，不需要 PHP、Unity 或构建步骤。
 - 扩展不包含作者服务器，不收集、出售、共享或上传用户个人信息。
 
@@ -110,4 +114,5 @@ Chrome Web Store / Edge Add-ons 用的说明、权限理由和预览图放在：
 - This is an unofficial tool and is not affiliated with Bilibili, VRChat, or 91biliplayer.
 - Bilibili direct media URLs are temporary and may expire.
 - Normal-video single click uses `https://biliplayer.91vrchat.com/player/?url=` plus the current Bilibili page URL. That third-party 91biliplayer service is not provided by this extension, so playback reliability depends on the service, Bilibili permissions, and network conditions.
+- NetEase direct-link parsing in this branch relies on `music.znnu.com`. Its availability, compliance boundary, and privacy practices are outside this extension.
 - Use this only with content you have the right to play.
