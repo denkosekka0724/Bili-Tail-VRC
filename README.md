@@ -2,11 +2,17 @@
 
 Bili小尾巴 VRC解析是一个轻量的 Chromium 浏览器扩展，用来把当前 B 站普通视频、分P、列表页视频和直播间解析成可以带去 VRChat/VRC 播放器里尝试使用的链接。
 
-## Chrome 商店安装
+## Chrome & Edge 商店安装
 
-已经上架 Chrome Web Store：
+已经上架 
+
+Chrome Web Store：
 
 https://chromewebstore.google.com/detail/naeaecjabhcjeagenojhaiflljegmaca?utm_source=item-share-cb
+
+Edge Store
+
+https://microsoftedge.microsoft.com/addons/detail/bili%E5%B0%8F%E5%B0%BE%E5%B7%B4-vrc%E8%A7%A3%E6%9E%90/bgjenhpnnedpmokppbapcfmhggkaogog
 
 ## 功能
 
